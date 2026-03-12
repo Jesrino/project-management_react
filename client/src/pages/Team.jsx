@@ -14,13 +14,13 @@ const Team = () => {
 
     const filteredUsers = users.filter(
         (user) =>
-            user?.user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user?.user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
+            user?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            user?.email?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 
     useEffect(() => {
         setUsers(currentWorkspace?.members || []);
-        setTasks(currentWorkspace?.projects?.reduce((acc, project) => [...acc, ...project.tasks], []) || []);
+        setTasks(currentWorkspace?.projects?.reduce((acc, project) => [...acc, ...project.tasks || []], []) || []);
     }, [currentWorkspace]);
 
     return (
@@ -132,17 +132,15 @@ const Team = () => {
                                             className="hover:bg-gray-50 dark:hover:bg-zinc-800/50 transition-colors"
                                         >
                                             <td className="px-6 py-2.5 whitespace-nowrap flex items-center gap-3">
-                                                <img
-                                                    src={user.user.image}
-                                                    alt={user.user.name}
-                                                    className="size-7 rounded-full bg-gray-200 dark:bg-zinc-800"
-                                                />
+                                            <div className="size-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-xs font-medium text-white">
+                                                    {(user.name || user.user?.name)?.[0]?.toUpperCase() || '?'}
+                                                </div>
                                                 <span className="text-sm text-zinc-800 dark:text-white truncate">
-                                                    {user.user?.name || "Unknown User"}
+                                                    {user.name || user.user?.name || "Unknown User"}
                                                 </span>
                                             </td>
                                             <td className="px-6 py-2.5 whitespace-nowrap text-sm text-gray-500 dark:text-zinc-400">
-                                                {user.user.email}
+                                                {user.email || user.user?.email || "No email"}
                                             </td>
                                             <td className="px-6 py-2.5 whitespace-nowrap">
                                                 <span
@@ -168,19 +166,17 @@ const Team = () => {
                                     className="p-4 border border-gray-200 dark:border-zinc-800 rounded-md bg-white dark:bg-zinc-900"
                                 >
                                     <div className="flex items-center gap-3 mb-2">
-                                        <img
-                                            src={user.user.image}
-                                            alt={user.user.name}
-                                            className="size-9 rounded-full bg-gray-200 dark:bg-zinc-800"
-                                        />
-                                        <div>
-                                            <p className="font-medium text-gray-900 dark:text-white">
-                                                {user.user?.name || "Unknown User"}
-                                            </p>
-                                            <p className="text-sm text-gray-500 dark:text-zinc-400">
-                                                {user.user.email}
-                                            </p>
-                                        </div>
+                                        <div className="size-9 rounded-full bg-gradient-to-br from-blue-400 to-blue-500 flex items-center justify-center text-sm font-medium text-white">
+                                                    {(user.name || user.user?.name)?.[0]?.toUpperCase() || '?'}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-gray-900 dark:text-white">
+                                                        {user.name || user.user?.name || "Unknown User"}
+                                                    </p>
+                                                    <p className="text-sm text-gray-500 dark:text-zinc-400">
+                                                        {user.email || user.user?.email || "No email"}
+                                                    </p>
+                                                </div>
                                     </div>
                                     <div>
                                         <span
