@@ -4,7 +4,7 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useSearchParams } from "react-router-dom";
 import { CalendarIcon, MessageCircle, PenIcon } from "lucide-react";
-import { assets } from "../assets/assets";
+// Removed assets import - use initials for avatars
 
 const TaskDetails = () => {
 
@@ -12,7 +12,7 @@ const TaskDetails = () => {
     const projectId = searchParams.get("projectId");
     const taskId = searchParams.get("taskId");
 
-    const user = { id : 'user_1'}
+    const user = { id : 'user_1', name: "You", image: '' } // Generic current user
     const [task, setTask] = useState(null);
     const [project, setProject] = useState(null);
     const [comments, setComments] = useState([]);
@@ -29,10 +29,10 @@ const TaskDetails = () => {
         setLoading(true);
         if (!projectId || !taskId) return;
 
-        const proj = currentWorkspace.projects.find((p) => p.id === projectId);
+        const proj = currentWorkspace?.projects?.find((p) => p.id === projectId);
         if (!proj) return;
 
-        const tsk = proj.tasks.find((t) => t.id === taskId);
+        const tsk = proj.tasks?.find((t) => t.id === taskId);
         if (!tsk) return;
 
         setTask(tsk);
@@ -50,7 +50,16 @@ const TaskDetails = () => {
             //  Simulate API call
             await new Promise((resolve) => setTimeout(resolve, 2000));
 
-            const dummyComment = { id: Date.now(), user: { id: 1, name: "User", image: assets.profile_img_a }, content: newComment, createdAt: new Date() };
+            const dummyComment = { 
+                id: Date.now(), 
+                user: { 
+                    id: user.id, 
+                    name: user.name, 
+                    image: '' // or use assets.workspace_img_default if needed
+                }, 
+                content: newComment, 
+                createdAt: new Date() 
+            };
             
             setComments((prev) => [...prev, dummyComment]);
             setNewComment("");
@@ -76,6 +85,8 @@ const TaskDetails = () => {
     if (loading) return <div className="text-gray-500 dark:text-zinc-400 px-4 py-6">Loading task details...</div>;
     if (!task) return <div className="text-red-500 px-4 py-6">Task not found.</div>;
 
+    const getInitials = (name) => name?.[0]?.toUpperCase() || '?';
+
     return (
         <div className="flex flex-col-reverse lg:flex-row gap-6 sm:p-4 text-gray-900 dark:text-zinc-100 max-w-6xl mx-auto">
             {/* Left: Comments / Chatbox */}
@@ -91,7 +102,9 @@ const TaskDetails = () => {
                                 {comments.map((comment) => (
                                     <div key={comment.id} className={`sm:max-w-4/5 dark:bg-gradient-to-br dark:from-zinc-800 dark:to-zinc-900 border border-gray-300 dark:border-zinc-700 p-3 rounded-md ${comment.user.id === user?.id ? "ml-auto" : "mr-auto"}`} >
                                         <div className="flex items-center gap-2 mb-1 text-sm text-gray-500 dark:text-zinc-400">
-                                            <img src={comment.user.image} alt="avatar" className="size-5 rounded-full" />
+                                            <div className="w-5 h-5 rounded-full bg-blue-500 flex items-center justify-center text-xs font-medium text-white">
+                                                {getInitials(comment.user.name)}
+                                            </div>
                                             <span className="font-medium text-gray-900 dark:text-white">{comment.user.name}</span>
                                             <span className="text-xs text-gray-400 dark:text-zinc-600">
                                                 • {format(new Date(comment.createdAt), "dd MMM yyyy, HH:mm")}
@@ -149,7 +162,9 @@ const TaskDetails = () => {
 
                     <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm text-gray-700 dark:text-zinc-300">
                         <div className="flex items-center gap-2">
-                            <img src={task.assignee?.image} className="size-5 rounded-full" alt="avatar" />
+                            <div className="w-5 h-5 rounded-full bg-green-500 flex items-center justify-center text-xs font-medium text-white">
+                                {getInitials(task.assignee?.name)}
+                            </div>
                             {task.assignee?.name || "Unassigned"}
                         </div>
                         <div className="flex items-center gap-2">
@@ -178,3 +193,4 @@ const TaskDetails = () => {
 };
 
 export default TaskDetails;
+

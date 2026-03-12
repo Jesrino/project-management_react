@@ -2,12 +2,16 @@ import { SearchIcon, PanelLeft } from 'lucide-react'
 import { useDispatch, useSelector } from 'react-redux'
 import { toggleTheme } from '../features/themeSlice'
 import { MoonIcon, SunIcon } from 'lucide-react'
-import { assets } from '../assets/assets'
+// Removed assets import - use dynamic or default avatar
 
 const Navbar = ({ setIsSidebarOpen }) => {
 
     const dispatch = useDispatch();
     const { theme } = useSelector(state => state.theme);
+    // TODO: Add user slice for real user data
+    const currentUser = { name: 'User', image: '' }; // Placeholder for real user
+
+    const getInitials = (name) => name?.[0]?.toUpperCase() || 'U';
 
     return (
         <div className="w-full bg-white dark:bg-zinc-900 border-b border-gray-200 dark:border-zinc-800 px-6 xl:px-16 py-3 flex-shrink-0">
@@ -42,8 +46,10 @@ const Navbar = ({ setIsSidebarOpen }) => {
                         }
                     </button>
 
-                    {/* User Button */}
-                    <img src={assets.profile_img_a} alt="User Avatar" className="size-7 rounded-full" />
+                    {/* User Button - Dynamic initials avatar */}
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow text-xs font-medium text-white">
+                        {getInitials(currentUser.name)}
+                    </div>
                 </div>
             </div>
         </div>
@@ -51,3 +57,4 @@ const Navbar = ({ setIsSidebarOpen }) => {
 }
 
 export default Navbar
+
