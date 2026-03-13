@@ -1,10 +1,14 @@
 import { useState } from "react";
+import { useDispatch, useSelector } from "react-redux";
 import { Mail, UserPlus } from "lucide-react";
-import { useSelector } from "react-redux";
+import toast from "react-hot-toast";
+import { inviteMemberWorkspace } from "../features/workspaceSlice";
+
 
 const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const currentWorkspace = useSelector((state) => state.workspace?.currentWorkspace || null);
+    const dispatch = useDispatch();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState({
         email: "",
@@ -13,7 +17,37 @@ const InviteMemberDialog = ({ isDialogOpen, setIsDialogOpen }) => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
+        if (!currentWorkspace) {
+            toast.error("No workspace selected");
+            return;
+        }
+        setIsSubmitting(true);
+        const workspaceId = currentWorkspace.id;
+        const payload = { workspaceId, email: formData.email, role: formData.role };
+        dispatch(inviteMemberWorkspace(payload));
+        toast.loading("Sending invitation...");
+        try {
+            const response = await fetch(`/api/workspaces/${workspaceId}/invites`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email: formData.email, role: formData.role }),
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            }
+            toast.success("Invitation sent successfully!");
+            setFormData({ email: "", role: "org:member" });
+            setIsDialogOpen(false);
+        } catch (error) {
+            toast.error(error.message || "Failed to send invitation");
+            console.error("Invite error:", error);
+        } finally {
+            setIsSubmitting(false);
+            toast.dismiss();
+        }
     };
 
     if (!isDialogOpen) return null;

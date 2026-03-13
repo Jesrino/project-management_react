@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Mail, UserPlus } from "lucide-react";
-import { useSelector } from "react-redux";
+import { useDispatch, useSelector } from "react-redux";
 import { useSearchParams } from "react-router-dom";
+import { Mail, UserPlus } from "lucide-react";
+import toast from "react-hot-toast";
+import { addMemberToProject } from "../features/workspaceSlice";
 
 const AddProjectMember = ({ isDialogOpen, setIsDialogOpen }) => {
 
@@ -14,12 +16,42 @@ const AddProjectMember = ({ isDialogOpen, setIsDialogOpen }) => {
     const project = currentWorkspace?.projects.find((p) => p.id === id);
     const projectMembersEmails = project?.members.map((member) => member.user.email);
 
+    const dispatch = useDispatch();
     const [email, setEmail] = useState('');
     const [isAdding, setIsAdding] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        
+        if (!email || !id || !currentWorkspace) {
+            toast.error("Please select a member and ensure project/workspace loaded");
+            return;
+        }
+        setIsAdding(true);
+        const payload = { projectId: id, email };
+        dispatch(addMemberToProject(payload));
+        toast.loading("Adding member to project...");
+        try {
+            const response = await fetch(`/api/projects/${id}/members`, {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ email }),
+            });
+            if (!response.ok) {
+                const errorText = await response.text();
+                throw new Error(errorText || `HTTP error! status: ${response.status}`);
+            }
+            toast.success("Member added to project!");
+            setEmail("");
+            setIsDialogOpen(false);
+        } catch (error) {
+            toast.error(error.message || "Failed to add member");
+            console.error("Add member error:", error);
+        } finally {
+            setIsAdding(false);
+            toast.dismiss();
+        }
     };
 
     if (!isDialogOpen) return null;

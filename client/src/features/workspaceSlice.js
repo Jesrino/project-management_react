@@ -90,7 +90,57 @@ const workspaceSlice = createSlice({
                 p.tasks = p.tasks.filter((t) => !action.payload.includes(t.id));
                 return p;
             });
-            // find workspace and project by id and delete task from it
+// find workspace and project by id and delete task from it
+
+        inviteMemberWorkspace: (state, action) => {
+            const { workspaceId, email, role } = action.payload;
+            const pendingId = `pending_${Date.now()}`;
+            const pendingMember = {
+                id: pendingId,
+                user: { 
+                    email, 
+                    name: 'Pending Invitation'
+                },
+                role,
+                pending: true
+            };
+            // Update currentWorkspace
+            if (state.currentWorkspace?.id === workspaceId) {
+                state.currentWorkspace.members.push(pendingMember);
+            }
+            // Update workspaces array
+            state.workspaces = state.workspaces.map((w) => 
+                w.id === workspaceId 
+                    ? { ...w, members: [...w.members, pendingMember] } 
+                    : w
+            );
+        },
+
+        addMemberToProject: (state, action) => {
+            const { projectId, email } = action.payload;
+            const newMember = {
+                user: { email },
+                role: 'member'
+            };
+            // Update currentWorkspace project
+            if (state.currentWorkspace) {
+                const project = state.currentWorkspace.projects.find(p => p.id === projectId);
+                if (project) {
+                    project.members.push(newMember);
+                }
+            }
+            // Update workspaces array
+            state.workspaces = state.workspaces.map((w) => 
+                w.id === state.currentWorkspace?.id ? {
+                    ...w,
+                    projects: w.projects.map(p => 
+                        p.id === projectId 
+                            ? { ...p, members: [...p.members, newMember] }
+                            : p
+                    )
+                } : w
+            );
+        }
             state.workspaces = state.workspaces.map((w) =>
                 w.id === state.currentWorkspace.id ? {
                     ...w, projects: w.projects.map((p) =>
@@ -105,6 +155,6 @@ const workspaceSlice = createSlice({
     }
 });
 
-export const { setWorkspaces, setCurrentWorkspace, addWorkspace, updateWorkspace, deleteWorkspace, addProject, addTask, updateTask, deleteTask } = workspaceSlice.actions;
+export const { setWorkspaces, setCurrentWorkspace, addWorkspace, updateWorkspace, deleteWorkspace, addProject, addTask, updateTask, deleteTask, inviteMemberWorkspace, addMemberToProject } = workspaceSlice.actions;
 export default workspaceSlice.reducer;
 
